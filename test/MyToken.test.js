@@ -1,4 +1,5 @@
 const Token = artifacts.require("MyToken");
+require('dotenv').config({path: '../.env'});
 
 var chai = require("chai");
 
@@ -11,12 +12,15 @@ chai.use(chaiAsPromised);
 
 const expect = chai.expect;
 
-contract("Token Test", async accounts => {
+contract("Token Test", function(accounts) {
     const [ initialHolder, recipient, anotherAccount ] = accounts;
 
+    beforeEach(async () => {
+      this.myToken = await Token.new(process.env.INITIAL_TOKENS);
+    });
 
     it("All tokens should be in my account", async () => {
-    let instance = await Token.deployed();
+    let instance = this.myToken;
     let totalSupply = await instance.totalSupply();
     //old style:
     //let balance = await instance.balanceOf.call(initialHolder);
@@ -27,7 +31,7 @@ contract("Token Test", async accounts => {
 
     it("I can send tokens from Account 1 to Account 2", async () => {
         const sendTokens = 1;
-        let instance = await Token.deployed();
+        let instance = this.myToken;
         let totalSupply = await instance.totalSupply();
         await expect(instance.balanceOf(initialHolder)).to.eventually.be.a.bignumber.equal(totalSupply);
         await expect(instance.transfer(recipient, sendTokens)).to.eventually.be.fulfilled;      
